@@ -1,14 +1,8 @@
-
-# importar o tkinter para pegar os dados do CTRL+C sem baixar mais nada
 from tkinter import Tk, TclError
-
-import threading
-
-# pra instalar o pyautogui se n tiver
 import subprocess
 import sys
+import multiprocessing as mp
 
-# importa pyautogui, se n tiver baixa dai importa
 import_list = ['pyautogui', 'keyboard']
 modules = {}
 try:
@@ -29,30 +23,29 @@ finally:
 
 class ClipBoard:
     def __init__(self):
-
         self.key = 'right ctrl'
-
         self.latch = False
-
         self.should_exit = False
-
-        self.main()
 
     def get_clipboard(self):
         try:
-            contents = Tk().clipboard_get().strip().replace('   ', '')
+            tab = '\t'
+            contents = Tk().clipboard_get().strip().replace(tab, '').replace('    ', '')
         except TclError:
             contents = ''
-            
+        
+        print('contents:', contents)
         return contents
 
     def paste(self, words: str):
-        modules['pyautogui'].typewrite(words)
+        modules['pyautogui'].write(words)
         
     def on_key_press(self, event):
         if event.name == self.key and event.event_type == 'down' and not self.latch:
             self.latch = True
-            self.paste(self.get_clipboard())
+
+            paste_process = mp.Process(target=self.paste, args=(self.get_clipboard(),))
+            paste_process.start()
         
         elif event.name == 'esc' and event.event_type == 'down':
             self.should_exit = True
@@ -61,29 +54,29 @@ class ClipBoard:
         if event.name == self.key and event.event_type == 'up' and self.latch:
             self.latch = False
 
-    def listen_for_exit(self):
+    def listen_for_exit(self, should_exit):
         modules['keyboard'].wait("esc")
-        self.should_exit = True
+        should_exit.value = True
 
-    def main(self):
-        # start a separate thread to listen for the "esc" key press event
-        listener_thread = threading.Thread(target=self.listen_for_exit)
-        listener_thread.start()
+    def main(self, should_exit):
+        # start a separate process to listen for the "esc" key press event
+        listener_process = mp.Process(target=self.listen_for_exit, args=(should_exit,))
+        listener_process.start()
 
         # register key press and release event handlers
         modules['keyboard'].on_press_key(self.key, self.on_key_press)
         modules['keyboard'].on_release_key(self.key, self.on_key_release)
         
-
+        print('Running... >> PRESSIONE ESC PARA PARAR O PROGRAMA <<')
         # wait for exit (busy wait)
-        while not self.should_exit:
-            pass
-        
-        # exit the program
-        exit()
+        while True:
+            if should_exit.value:
+                print('Quitting...')
+                exit()
+    
     
 if __name__ == '__main__':
+    should_exit = mp.Value('b', False)
     cliboard = ClipBoard()
-
-
-
+    cliboard.main(should_exit)
+    print('YEP')
