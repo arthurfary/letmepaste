@@ -14,3 +14,5 @@ Quando você rodar o código ele vai baixar as dependências necessárias e vai 
 `pyautogui` vai simular teclas no teclado sendo precionadas.
 
 ## LEMBRE DE ENCERRAR O PROGRAMA CLICANDO `ESC`
+
+> Pastebin link: https://pastebin.com/FqYmfj23
