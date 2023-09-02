@@ -1,29 +1,9 @@
-import signal
 from tkinter import Tk, TclError
-import subprocess
-import sys
 import multiprocessing as mp
-import os
 from time import sleep
 
-import_list = ['pyautogui', 'keyboard']
-modules = {}
-try:
-    for import_var in import_list:
-        modules[import_var] = __import__(import_var)
-
-except ModuleNotFoundError:
-    python = sys.executable
-
-    for import_var in import_list:
-        subprocess.check_call(
-            [python, '-m', 'pip', 'install', import_var]
-        )
-
-finally:
-    for import_var in import_list:
-        modules[import_var] = __import__(import_var)
-
+import pyautogui
+import keyboard
 
 class ClipBoard:
     def __init__(self):
@@ -42,7 +22,7 @@ class ClipBoard:
         return contents
 
     def paste(self, words: str):
-        modules['pyautogui'].write(words)
+        pyautogui.write(words)
 
     def on_key_press(self, event):
         print(event.name)
@@ -62,18 +42,11 @@ class ClipBoard:
     def main(self):
 
         # register key press and release event handlers
-        modules['keyboard'].on_press_key(self.key, self.on_key_press)
-        modules['keyboard'].on_release_key(self.key, self.on_key_release)
+        keyboard.on_press_key(self.key, self.on_key_press)
+        keyboard.on_release_key(self.key, self.on_key_release)
 
         print('\n\nRunning...\n >> LEMBRE-SE DE FECHAR O PROGRAMA<<')
-        modules['keyboard'].wait()
-
-
-
-
-
-
-
+        keyboard.wait()
 
 
 if __name__ == '__main__':
